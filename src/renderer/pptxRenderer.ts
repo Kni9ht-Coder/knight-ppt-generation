@@ -8,6 +8,7 @@ import { boxToInches, SLIDE_HEIGHT_IN, SLIDE_WIDTH_IN } from "./units.js";
 export interface RenderOptions {
   outputPath: string;
   assets: ResolvedAssetMap;
+  templatePath?: string;
 }
 
 export async function renderPptx(deck: DeckSpec, options: RenderOptions): Promise<string> {

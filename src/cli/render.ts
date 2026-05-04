@@ -12,13 +12,14 @@ async function main(): Promise<void> {
   const { values } = parseArgs({
     options: {
       spec: { type: "string" },
+      template: { type: "string" },
       out: { type: "string" },
       "assets-dir": { type: "string" }
     }
   });
 
   if (!values.spec) {
-    console.error("Usage: npm run render -- --spec <deck.json> [--assets-dir <dir>] [--out <file.pptx>]");
+    console.error("Usage: npm run render -- --spec <deck.json> [--template <template.pptx>] [--assets-dir <dir>] [--out <file.pptx>]");
     process.exitCode = 1;
     return;
   }
@@ -41,7 +42,8 @@ async function main(): Promise<void> {
   const outputPath = resolve(values.out || `${topicDir}/7-output/output.pptx`);
 
   const assets = await resolveDeckAssets(deck, { assetsDir, offline: true });
-  await renderPptx(deck, { outputPath, assets });
+  const templatePath = values.template ? resolve(values.template) : undefined;
+  await renderPptx(deck, { outputPath, assets, templatePath });
 
   console.log(`PPTX: ${outputPath}`);
 }

@@ -41,7 +41,29 @@ outputs/{slug}/
 │   └── deck.json
 └── 7-output/
     └── output.pptx
+
+templates/
+└── {template-name}.pptx    (用户的固定 PPT 模板)
 ```
+
+### 模板约定
+
+用户可将常用的 PPT 模板放在项目根目录 `templates/` 下。模板文件为标准 .pptx，包含：
+- 母版页（封面、内容、章节、结尾等版式）
+- 固定的配色方案、字体、Logo、页脚
+- 占位符布局
+
+使用模板时，在 `brief.json` 中指定：
+
+```json
+{
+  "topic": "...",
+  "template": "templates/lab-report.pptx",
+  ...
+}
+```
+
+渲染器会以该模板为基础生成 PPTX，继承模板的母版样式、配色和 Logo。如未指定模板，则使用默认空白样式。
 
 ## Stage 0: 素材输入与提取
 
@@ -79,7 +101,8 @@ outputs/{slug}/
   "style": "学术、严谨、数据驱动",
   "goals": ["汇报研究进展", "展示核心贡献"],
   "constraints": ["时间限制", "需要包含的特定内容"],
-  "sources": ["paper.pdf", "notes.md"]
+  "sources": ["paper.pdf", "notes.md"],
+  "template": "templates/lab-report.pptx"
 }
 ```
 

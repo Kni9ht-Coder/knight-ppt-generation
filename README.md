@@ -45,6 +45,7 @@ npm run render -- --spec outputs/my-deck/6-deck/deck.json
 ```
 
 可选参数：
+- `--template <file>` — PPT 模板文件（默认无，使用空白样式）
 - `--assets-dir <dir>` — 资产目录（默认 `outputs/{slug}/5-assets`）
 - `--out <file>` — 输出路径（默认 `outputs/{slug}/7-output/output.pptx`）
 
@@ -59,6 +60,7 @@ npm run render -- --spec outputs/my-deck/6-deck/deck.json
 
 ```
 .kiro/skills/ppt-generation/SKILL.md  — Agent 工作流定义
+templates/                             — 用户的固定 PPT 模板
 src/cli/render.ts                      — 渲染 CLI 入口
 src/schemas/deck.ts                    — DeckSpec Zod schema
 src/renderer/                          — PptxGenJS 渲染器
