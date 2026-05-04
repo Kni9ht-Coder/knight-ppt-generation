@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { GPT_IMAGE_MODEL } from "../config.js";
+import { languageSchema } from "./brief.js";
 
-export const languageSchema = z.enum(["zh-CN", "en-US"]).default("zh-CN");
-
+// briefSpecSchema 已移至 brief.ts，这里保留是为了向后兼容
 export const briefSpecSchema = z.object({
   topic: z.string().min(1),
   audience: z.string().min(1).default("业务负责人"),
@@ -10,7 +9,9 @@ export const briefSpecSchema = z.object({
   language: languageSchema,
   style: z.string().min(1).default("专业、简洁、信息密度适中"),
   goals: z.array(z.string()).default([]),
-  constraints: z.array(z.string()).default([])
+  constraints: z.array(z.string()).default([]),
+  sources: z.array(z.string()).default([]),
+  template: z.string().optional()
 });
 
 export const boxSchema = z.object({
@@ -93,15 +94,8 @@ export const slideElementSchema = z.discriminatedUnion("type", [
 
 export const assetSchema = z.object({
   id: z.string().min(1),
-  kind: z.enum(["svg", "ai-raster", "raster", "vectorized"]),
-  prompt: z.string().optional(),
+  kind: z.enum(["svg", "raster"]),
   alt: z.string().optional(),
-  model: z.string().default(GPT_IMAGE_MODEL),
-  quality: z.enum(["low", "medium", "high", "auto"]).default("medium"),
-  size: z.enum(["1024x1024", "1536x1024", "1024x1536", "auto"]).default("1536x1024"),
-  outputFormat: z.enum(["png", "jpeg", "webp"]).default("png"),
-  background: z.enum(["transparent", "opaque", "auto"]).default("auto"),
-  template: z.enum(["cover", "workflow", "architecture", "roadmap", "metrics", "placeholder"]).optional(),
   svg: z.string().optional(),
   sourcePath: z.string().optional()
 });

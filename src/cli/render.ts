@@ -41,7 +41,7 @@ async function main(): Promise<void> {
   const assetsDir = resolve(values["assets-dir"] || `${topicDir}/5-assets`);
   const outputPath = resolve(values.out || `${topicDir}/7-output/output.pptx`);
 
-  const assets = await resolveDeckAssets(deck, { assetsDir, offline: true });
+  const assets = await resolveDeckAssets(deck, { assetsDir });
   const templatePath = values.template ? resolve(values.template) : undefined;
   await renderPptx(deck, { outputPath, assets, templatePath });
 

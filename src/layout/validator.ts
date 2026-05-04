@@ -64,19 +64,11 @@ function validateAssets(deck: DeckSpec): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
   for (const asset of deck.assets) {
-    if (asset.kind === "ai-raster" && asset.model !== "gpt-image-2") {
-      issues.push({
-        level: "error",
-        path: `assets.${asset.id}.model`,
-        message: "AI raster images must use fixed model gpt-image-2."
-      });
-    }
-
-    if ((asset.kind === "ai-raster" || asset.kind === "svg") && !asset.prompt && !asset.svg && !asset.template) {
+    if ((asset.kind === "svg") && !asset.svg && !asset.sourcePath) {
       issues.push({
         level: "warning",
         path: `assets.${asset.id}`,
-        message: "Asset has no prompt, inline SVG, or template; placeholder SVG will be used."
+        message: "Asset has no inline SVG or sourcePath; placeholder SVG will be used."
       });
     }
   }
