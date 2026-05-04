@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { basename, dirname, join, resolve } from "node:path";
 import { resolveDeckAssets } from "../assets/assetPipeline.js";
 import { repairDeckSpec } from "../layout/repair.js";
 import { validateDeckSpec } from "../layout/validator.js";
@@ -36,10 +37,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  const slug = slugify(deck.meta.title);
-  const topicDir = resolve(`outputs/${slug}`);
-  const assetsDir = resolve(values["assets-dir"] || `${topicDir}/5-assets`);
-  const outputPath = resolve(values.out || `${topicDir}/7-output/output.pptx`);
+  const topicDir = inferTopicDir(specPath, deck.meta.title);
+  const assetsDir = resolve(values["assets-dir"] || pickStageDir(topicDir, "5-资产", "5-assets"));
+  const outputPath = resolve(values.out || join(pickStageDir(topicDir, "7-输出", "7-output"), "output.pptx"));
 
   const assets = await resolveDeckAssets(deck, { assetsDir });
   const templatePath = values.template ? resolve(values.template) : undefined;
@@ -52,3 +52,24 @@ main().catch((e) => {
   console.error(e instanceof Error ? e.message : e);
   process.exitCode = 1;
 });
+
+function inferTopicDir(specPath: string, title: string): string {
+  const specDir = dirname(specPath);
+  const stageDir = basename(specDir);
+  if (stageDir === "6-渲染规格" || stageDir === "6-deck") {
+    return dirname(specDir);
+  }
+
+  return resolve(`outputs/${slugify(title)}`);
+}
+
+function pickStageDir(topicDir: string, preferred: string, legacy: string): string {
+  const preferredPath = join(topicDir, preferred);
+  const legacyPath = join(topicDir, legacy);
+
+  if (!existsSync(preferredPath) && existsSync(legacyPath)) {
+    return legacyPath;
+  }
+
+  return preferredPath;
+}

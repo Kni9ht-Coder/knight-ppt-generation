@@ -18,21 +18,21 @@ npm install
 
 ```
 你: 帮我做一个关于企业 AI 助手的 PPT，给 CEO 看，8 页，蓝橙配色
-Agent: [生成 brief.json] 主题定义已保存，请确认...
+Agent: [创建阶段目录] 请将素材放入 outputs/ai-assistant-overview-YYYYMMDD/0-素材/，完成后回复“继续”。
 ```
 
 ## 工作流程（8 阶段）
 
 | 阶段 | 产物 | 说明 |
 |------|------|------|
-| 0. 素材导入 | `outputs/{slug}/0-sources/` | 放入论文 PDF、报告、Word 等素材 |
-| 1. 主题定义 | `outputs/{slug}/1-brief/brief.json` | 确定主题、受众、风格 |
-| 2. 大纲规划 | `outputs/{slug}/2-outline/outline.json` | 每页标题和要点 |
-| 3. 内容撰写 | `outputs/{slug}/3-content/content.json` | 详细文案 |
-| 4. 版式设计 | `outputs/{slug}/4-layout/layout.json` | 元素坐标布局 |
-| 5. 配图生成 | `outputs/{slug}/5-assets/*.svg` | SVG 配图 |
-| 6. 组装 DeckSpec | `outputs/{slug}/6-deck/deck.json` | 最终渲染规格 |
-| 7. 渲染 PPTX | `outputs/{slug}/7-output/output.pptx` | 可编辑 PowerPoint |
+| 0. 素材导入 | `outputs/{slug}/0-素材/` | 放入论文 PDF、报告、Word 等素材 |
+| 1. 主题定义 | `outputs/{slug}/1-简报/brief.json` | 确定主题、受众、风格 |
+| 2. 大纲规划 | `outputs/{slug}/2-大纲/outline.json` | 每页标题和要点 |
+| 3. 内容撰写 | `outputs/{slug}/3-内容/content.json` | 详细文案 |
+| 4. 版式设计 | `outputs/{slug}/4-版式/layout.json` | 元素坐标布局 |
+| 5. 配图生成 | `outputs/{slug}/5-资产/*.svg` | SVG 配图 |
+| 6. 组装 DeckSpec | `outputs/{slug}/6-渲染规格/deck.json` | 最终渲染规格 |
+| 7. 渲染 PPTX | `outputs/{slug}/7-输出/output.pptx` | 可编辑 PowerPoint |
 
 每个阶段完成后 Agent 会暂停等待你确认，你可以随时要求修改。
 
@@ -41,13 +41,15 @@ Agent: [生成 brief.json] 主题定义已保存，请确认...
 当 deck.json 准备好后，运行：
 
 ```bash
-npm run render -- --spec outputs/my-deck/6-deck/deck.json
+npm run render -- --spec outputs/my-deck/6-渲染规格/deck.json
 ```
 
 可选参数：
 - `--template <file>` — PPT 模板文件（默认无，使用空白样式）
-- `--assets-dir <dir>` — 资产目录（默认 `outputs/{slug}/5-assets`）
-- `--out <file>` — 输出路径（默认 `outputs/{slug}/7-output/output.pptx`）
+- `--assets-dir <dir>` — 资产目录（默认 `outputs/{slug}/5-资产`）
+- `--out <file>` — 输出路径（默认 `outputs/{slug}/7-输出/output.pptx`）
+
+渲染器仍兼容旧目录名 `5-assets` 和 `7-output`；新项目默认使用中文阶段目录。
 
 ## 核心约束
 

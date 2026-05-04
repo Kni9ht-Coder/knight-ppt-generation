@@ -1,6 +1,6 @@
 ---
 name: ppt-generation
-description: PPT 生成工作流。当用户要求制作演示文稿/PPT/幻灯片时使用此 Skill，支持从论文、报告、Word 等素材中提取内容，按阶段生成中间产物并最终渲染为 .pptx。
+description: PPT 生成工作流。当用户要求制作演示文稿/PPT/幻灯片时使用此 Skill；启动时先询问 PPT 主题并创建 outputs/{slug} 阶段目录，让用户放入 source 后等待继续；之后必须逐阶段生成并在每个阶段完成后停下等待用户检查确认，不能一次性完成全流程；支持从论文、报告、Word 等素材中提取内容，按阶段生成中间产物并最终渲染为 .pptx。
 ---
 
 # PPT 生成工作流（科研汇报）
@@ -10,8 +10,9 @@ description: PPT 生成工作流。当用户要求制作演示文稿/PPT/幻灯�
 ## 工作流程
 
 ```
-Stage 0: 素材导入     → 将论文/报告/Word/PPT 放入 0-sources/，提取关键信息
-Stage 1: brief.json   → 主题定义（从素材中聚合）
+启动: 主题确认       → 先询问 PPT 主题，创建 outputs/{slug}/ 阶段目录后停止
+素材: 用户放入 source → 用户将论文/报告/Word/PPT 放入 0-素材/ 并回复继续
+Stage 0/1: notes+brief → 读取素材，生成 notes.md 和 brief.json 后停止
 Stage 2: outline.json → 大纲规划
 Stage 3: content.json → 内容撰写
 Stage 4: layout.json  → 版式设计（含坐标）
@@ -20,26 +21,59 @@ Stage 6: deck.json    → 组装最终 DeckSpec
 Stage 7: .pptx        → 运行 npm run render 渲染
 ```
 
+## 交互启动与确认门禁
+
+默认必须采用交互式分阶段生成。每次用户确认最多推进一个阶段；完成该阶段内部必要的校验和摘要说明后必须停止，等待用户检查并明确回复继续。禁止在同一轮中继续执行下一阶段，更禁止从主题或 brief 一次性跑到 render。
+
+启动规则：
+
+- 用户只说“开始 PPT 生成”“开始”“生成 PPT”但没有给主题时，只询问 PPT 主题，不生成任何阶段文件。
+- 用户给出主题后，先生成 slug，并创建 `outputs/{slug}/0-素材/` 到 `7-输出/` 的阶段目录；随后立即停止，提示用户把素材放入 `0-素材/`。
+- 如果用户一开始已经给出主题，也只创建阶段目录并停止，不要直接读取素材、生成 `brief.json` 或继续后续阶段。
+- 用户把素材放入 `0-素材/` 并回复“继续”后，才开始读取素材。
+- 读取素材后生成 `0-素材/notes.md` 和 `1-简报/brief.json`，完成必要校验，然后停止等待用户检查 brief。
+- 如果用户回复“继续”但 `0-素材/` 没有可读素材，必须停止并询问是否允许基于主题直接生成，不能默认编造内容。
+
+阶段门禁：
+
+- 启动阶段：拿到主题后只创建目录并停止，等待用户放入素材。
+- Stage 0/1：用户放入素材并确认继续后，读取素材，生成 `notes.md` 和 `brief.json` 并校验，然后停止，等待用户确认素材提取、主题、受众、页数、风格和限制。
+- Stage 2 完成 `outline.json` 并校验后停止，等待用户确认页序、标题、页面类型和视觉类型。
+- Stage 3 完成 `content.json` 并校验后停止，等待用户确认每页文案、表格数据、图表数据和备注。
+- Stage 4 完成 `layout.json` 并校验后停止，等待用户确认版式、坐标、安全区和信息密度。
+- Stage 5 完成资产、SVG 或图片 prompt，并通过资产校验后停止，等待用户确认视觉资产。
+- Stage 6 完成 `deck.json`、schema 校验和布局校验后停止，等待用户确认 DeckSpec 可以进入渲染。
+- Stage 7 只能在用户明确确认可以渲染后运行，渲染完成后给出 `.pptx` 路径和校验结果。
+
+阶段完成时的回复格式：
+
+```text
+已完成：{阶段名称}
+产物：outputs/{slug}/{stage-dir}/{file}
+校验：通过/未通过，关键问题如下
+请检查该阶段内容。确认后我再进入下一阶段。
+```
+
 ## 文件路径约定
 
 ```
 outputs/{slug}/
-├── 0-sources/
+├── 0-素材/
 │   ├── *.pdf / *.docx / *.md / *.pptx  (用户提供的原始素材)
 │   └── notes.md                          (从素材中提取的关键信息摘要)
-├── 1-brief/
+├── 1-简报/
 │   └── brief.json
-├── 2-outline/
+├── 2-大纲/
 │   └── outline.json
-├── 3-content/
+├── 3-内容/
 │   └── content.json
-├── 4-layout/
+├── 4-版式/
 │   └── layout.json
-├── 5-assets/
+├── 5-资产/
 │   └── *.svg
-├── 6-deck/
+├── 6-渲染规格/
 │   └── deck.json
-└── 7-output/
+└── 7-输出/
     └── output.pptx
 
 templates/
@@ -72,9 +106,19 @@ templates/
 
 渲染器会以该模板为基础生成 PPTX，继承模板的母版样式、配色和 Logo。如未指定模板，则使用默认空白样式。
 
-## Stage 0: 素材输入与提取
+## Stage 0: 启动、素材输入与提取
 
-用户将原始素材放入 `outputs/{slug}/0-sources/` 目录：
+启动流程：
+
+1. 如果用户没有给 PPT 主题，只问：“PPT 主题是什么？”不要追问受众、页数、风格等细节。
+2. 用户给出主题后，生成 slug，并创建完整阶段目录。
+3. 回复用户 `outputs/{slug}/0-素材/` 路径，请用户把 PDF、Word、Markdown、已有 PPT、数据表或笔记放入该目录。
+4. 立即停止，等待用户回复“继续”。
+5. 用户回复继续后，先列出 `0-素材/` 下素材；如果为空，停止询问是否允许基于主题直接生成。
+6. 如果存在素材，读取所有可读素材，提取 `notes.md`，再生成 `brief.json`。
+7. 完成 `notes.md` 和 `brief.json` 后停止，等待用户确认。
+
+用户将原始素材放入 `outputs/{slug}/0-素材/` 目录：
 - 论文 PDF
 - Word 文档、Markdown 笔记
 - 已有的 PPT 文件
@@ -82,8 +126,8 @@ templates/
 
 **处理流程：**
 
-1. 阅读 `0-sources/` 下的所有素材文件
-2. 提取关键信息，生成 `0-sources/notes.md`，包含：
+1. 阅读 `0-素材/` 下的所有素材文件
+2. 提取关键信息，生成 `0-素材/notes.md`，包含：
    - 研究背景与动机
    - 研究问题/假设
    - 方法论/技术路线
@@ -93,7 +137,8 @@ templates/
    - 局限性与未来工作
    - 关键图表描述（需要用 SVG 重绘的，标注原图位置）
    - 参考文献（如需引用）
-3. 向用户确认提取是否完整，是否有遗漏或需要补充的内容
+3. 基于主题和素材生成 `1-简报/brief.json`
+4. 向用户确认 `notes.md` 与 `brief.json` 是否完整，除非用户明确要求修改，否则不进入 outline
 
 **引用溯源要求：**
 - 所有实验数据、关键结论必须标注来源（文件名 + 页码/章节）
@@ -278,7 +323,7 @@ templates/
 
 ## Stage 5: 配图生成
 
-为 layout 中的 visual-placeholder 生成配图，写入 `outputs/{slug}/5-assets/`。
+为 layout 中的 visual-placeholder 生成配图，写入 `outputs/{slug}/5-资产/`。
 
 **配图类型分类：**
 
@@ -316,7 +361,7 @@ templates/
 关键点：
 - visual-placeholder 替换为 `svg` 或 `image` 元素，引用 assetId
 - text 元素添加完整 style（fontSize, color, align）
-- assets 数组中 kind 为 "svg"，sourcePath 指向 5-assets 下的文件
+- assets 数组中 kind 为 "svg"，sourcePath 指向 5-资产 下的文件
 
 ```json
 {
@@ -332,7 +377,7 @@ templates/
     "footer": { "enabled": true, "text": "" }
   },
   "assets": [
-    { "id": "s4-arch", "kind": "svg", "sourcePath": "outputs/{slug}/5-assets/s4-arch.svg" }
+    { "id": "s4-arch", "kind": "svg", "sourcePath": "outputs/{slug}/5-资产/s4-arch.svg" }
   ],
   "slides": [...]
 }
@@ -341,14 +386,14 @@ templates/
 ## Stage 7: 渲染 PPTX
 
 ```bash
-npm run render -- --spec outputs/{slug}/6-deck/deck.json
+npm run render -- --spec outputs/{slug}/6-渲染规格/deck.json
 ```
 
 渲染器会：
 1. 校验 DeckSpec schema
 2. 修复越界坐标
 3. 解析资产文件
-4. 生成 .pptx（默认输出到 7-output/output.pptx）
+4. 生成 .pptx（默认输出到 7-输出/output.pptx）
 
 ## 核心约束
 
@@ -446,7 +491,7 @@ npm run render -- --spec outputs/{slug}/6-deck/deck.json
 
 **文件操作：**
 - ❌ 禁止在没有用户确认的情况下删除阶段产物
-- ❌ 禁止覆盖用户原始素材（0-sources/ 下的文件）
+- ❌ 禁止覆盖用户原始素材（0-素材/ 下的文件）
 - ❌ 禁止修改 templates/ 下的模板源文件
 
 **SVG 安全：**
