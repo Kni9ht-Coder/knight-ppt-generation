@@ -10,7 +10,7 @@ description: PPT 生成工作流。当用户要求制作演示文稿/PPT/幻灯�
 ## 工作流程
 
 ```
-Stage 0: 素材输入     → 阅读用户提供的文档，提取关键信息
+Stage 0: 素材导入     → 将论文/报告/Word/PPT 放入 0-sources/，提取关键信息
 Stage 1: brief.json   → 主题定义（从素材中聚合）
 Stage 2: outline.json → 大纲规划
 Stage 3: content.json → 内容撰写

@@ -21,10 +21,11 @@ npm install
 Agent: [生成 brief.json] 主题定义已保存，请确认...
 ```
 
-## 工作流程（7 阶段）
+## 工作流程（8 阶段）
 
 | 阶段 | 产物 | 说明 |
 |------|------|------|
+| 0. 素材导入 | `outputs/{slug}/0-sources/` | 放入论文 PDF、报告、Word 等素材 |
 | 1. 主题定义 | `outputs/{slug}/1-brief/brief.json` | 确定主题、受众、风格 |
 | 2. 大纲规划 | `outputs/{slug}/2-outline/outline.json` | 每页标题和要点 |
 | 3. 内容撰写 | `outputs/{slug}/3-content/content.json` | 详细文案 |
