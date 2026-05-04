@@ -1,0 +1,4 @@
+interface:
+  display_name: "PPT 生成"
+  short_description: "按 DeckSpec 流水线生成中文可编辑 PPTX。"
+  default_prompt: "请按本仓库 DeckSpec 工作流帮我生成一份中文可编辑 PowerPoint。"
