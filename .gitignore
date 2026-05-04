@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.DS_Store
+outputs/**/*.pptx
+outputs/**/*.png
+outputs/**/*.jpeg
+outputs/**/*.jpg
+outputs/**/*.webp
+outputs/**/*.svg
+outputs/**/*.json
+!outputs/.gitkeep
+!outputs/assets/.gitkeep
+!outputs/pptx/.gitkeep
+!outputs/specs/.gitkeep
