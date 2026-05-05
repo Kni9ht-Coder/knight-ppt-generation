@@ -14,7 +14,7 @@
 npm install
 ```
 
-在 Kiro CLI 中开始对话，Agent 会自动加载 PPT 生成 Skill：
+在 Codex CLI 中开始对话，Agent 会自动加载 PPT 生成 Skill：
 
 ```
 你: 帮我做一个关于企业 AI 助手的 PPT，给 CEO 看，8 页，蓝橙配色
