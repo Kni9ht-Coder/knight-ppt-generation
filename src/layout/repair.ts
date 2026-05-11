@@ -21,8 +21,31 @@ function clampElement(element: SlideElement): void {
 
   if (element.type === "text") {
     if (!element.style.fontSize) {
-      element.style.fontSize = element.role === "title" ? 28 : 14;
+      element.style.fontSize = defaultFontSize(element.role);
     }
+  }
+}
+
+function defaultFontSize(role: Extract<SlideElement, { type: "text" }>["role"]): number {
+  switch (role) {
+    case "title":
+      return 28;
+    case "claim":
+      return 18;
+    case "metric":
+      return 20;
+    case "caption":
+    case "footer":
+      return 10;
+    case "evidence":
+      return 12;
+    case "subtitle":
+      return 16;
+    case "label":
+      return 11;
+    case "body":
+    default:
+      return 14;
   }
 }
 

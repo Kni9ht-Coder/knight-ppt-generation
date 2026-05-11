@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { languageSchema } from "./brief.js";
+import { presentationModeSchema, researchRoleSchema } from "./research.js";
 
 // briefSpecSchema 已移至 brief.ts，这里保留是为了向后兼容
 export const briefSpecSchema = z.object({
@@ -7,6 +8,7 @@ export const briefSpecSchema = z.object({
   audience: z.string().min(1).default("业务负责人"),
   slideCount: z.number().int().min(1).max(40).default(8),
   language: languageSchema,
+  mode: presentationModeSchema,
   style: z.string().min(1).default("专业、简洁、信息密度适中"),
   goals: z.array(z.string()).default([]),
   constraints: z.array(z.string()).default([]),
@@ -46,7 +48,7 @@ const baseElementSchema = z.object({
 export const textElementSchema = baseElementSchema.extend({
   type: z.literal("text"),
   text: z.string(),
-  role: z.enum(["title", "subtitle", "body", "caption", "footer", "label"]).default("body"),
+  role: z.enum(["title", "subtitle", "claim", "body", "evidence", "metric", "caption", "footer", "label"]).default("body"),
   style: textStyleSchema.default({})
 });
 
@@ -123,6 +125,7 @@ export const themeSchema = z.object({
 export const slideSchema = z.object({
   id: z.string().min(1),
   layout: z.enum(["cover", "section", "content", "two-column", "diagram", "table", "closing"]).default("content"),
+  researchRole: researchRoleSchema.optional(),
   title: z.string().optional(),
   notes: z.string().optional(),
   backgroundColor: colorSchema.optional(),
@@ -134,6 +137,7 @@ export const deckSpecSchema = z.object({
     title: z.string().min(1),
     audience: z.string().min(1),
     language: languageSchema,
+    mode: presentationModeSchema,
     slideCount: z.number().int().min(1).max(40)
   }),
   theme: themeSchema,

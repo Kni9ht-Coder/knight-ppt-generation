@@ -36,6 +36,27 @@ Agent: [创建阶段目录] 请将素材放入 outputs/ai-assistant-overview-YYY
 
 每个阶段完成后 Agent 会暂停等待你确认，你可以随时要求修改。
 
+## 科研汇报模式
+
+科研汇报请在 `brief.json` 中设置：
+
+```json
+{
+  "mode": "research-report",
+  "audience": "课题组老师和同学",
+  "style": "学术、严谨、数据驱动，强调方法细节和实验依据"
+}
+```
+
+可参考 [examples/briefs/research-report.zh.json](./examples/briefs/research-report.zh.json)。
+
+该模式会启用更严格的中间产物和最终渲染校验：
+
+- 大纲页必须声明 `researchRole`，并覆盖问题、方法、实验设置、主结果和结论。
+- 内容页必须包含 `claim`、`evidence`、`speakerNotes`、`visualSpec` 和 3-6 条正文要点。
+- 主结果和消融实验页必须使用 `table` 或 `chart` 承载数据。
+- 最终 `DeckSpec` 会拒绝过空的科研正文页，避免渲染出只有抽象 bullet 的 PPT。
+
 ## 渲染命令
 
 当 deck.json 准备好后，运行：

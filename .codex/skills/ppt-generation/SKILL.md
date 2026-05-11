@@ -202,6 +202,7 @@ outputs/{slug}/1-简报/brief.json
   "audience": "目标受众",
   "slideCount": 12,
   "language": "zh-CN",
+  "mode": "research-report",
   "style": "学术、严谨、数据驱动",
   "goals": ["汇报研究进展", "展示核心贡献"],
   "constraints": ["时间限制", "需要包含的特定内容"],
@@ -217,6 +218,7 @@ outputs/{slug}/1-简报/brief.json
 - `audience` 不能为空。
 - `slideCount` 在 1-40 之间。
 - 默认语言为 `zh-CN`。
+- `mode` 默认为 `general`；科研汇报必须使用 `research-report`。
 - 风格必须能指导内容密度、配色、字体和版式。
 
 科研汇报典型页数：
@@ -249,12 +251,14 @@ outputs/{slug}/2-大纲/outline.json
     "title": "演示标题",
     "audience": "目标受众",
     "language": "zh-CN",
+    "mode": "research-report",
     "slideCount": 12
   },
   "slides": [
     {
       "id": "slide-1",
       "layout": "cover",
+      "researchRole": "cover",
       "title": "论文标题",
       "keyPoints": [],
       "visualType": "none"
@@ -262,8 +266,9 @@ outputs/{slug}/2-大纲/outline.json
     {
       "id": "slide-2",
       "layout": "content",
-      "title": "研究背景",
-      "keyPoints": ["领域现状", "已有工作不足", "研究动机"],
+      "researchRole": "problem",
+      "title": "研究问题与动机",
+      "keyPoints": ["领域现状与约束", "已有方法的具体不足", "本文要解决的核心问题"],
       "visualType": "none"
     }
   ]
@@ -275,9 +280,11 @@ outputs/{slug}/2-大纲/outline.json
 - 第一页通常为 `cover`。
 - 最后一页通常为 `closing`。
 - 科研汇报遵循：背景 -> 问题 -> 方法 -> 实验 -> 结果 -> 分析 -> 结论 -> 未来工作。
+- 科研汇报必须覆盖 `problem`、`method-overview`、`experiment-setup`、`main-results`、`conclusion`。
+- 科研汇报正文页必须声明 `researchRole`，并至少包含 3 条具体 `keyPoints`。
 - 商业汇报遵循：背景/机会 -> 痛点 -> 方案 -> 价值 -> 路线图 -> 资源需求 -> 风险 -> 下一步。
 - 方法、结果、方案或价值部分应占主要篇幅。
-- 每页 `keyPoints` 不超过 5 条。
+- 每页 `keyPoints` 不超过 6 条。
 - 需要展示数据时优先用 `table` 或 `chart`。
 - 复杂结构、方法流程、系统架构使用 `diagram`。
 
@@ -319,12 +326,14 @@ outputs/{slug}/3-内容/content.json
     "title": "演示标题",
     "audience": "目标受众",
     "language": "zh-CN",
+    "mode": "research-report",
     "slideCount": 12
   },
   "slides": [
     {
       "id": "slide-1",
       "layout": "cover",
+      "researchRole": "cover",
       "title": "论文标题",
       "subtitle": "作者 · 单位 · 日期",
       "bodyText": [],
@@ -334,23 +343,59 @@ outputs/{slug}/3-内容/content.json
     {
       "id": "slide-6",
       "layout": "table",
+      "researchRole": "main-results",
       "title": "实验结果对比",
       "subtitle": "",
-      "bodyText": ["在测试集上的性能对比显示，本文方法在 F1 指标上优于基线。"],
+      "claim": "本文方法在核心指标上稳定优于基线。",
+      "bodyText": [
+        "在相同测试集和评估协议下比较 Baseline 与本文方法。",
+        "本文方法在 Precision、Recall 和 F1 三个指标上均取得提升。",
+        "F1 的提升说明方法在精确率与召回率之间取得更好的平衡。"
+      ],
+      "evidence": [
+        {
+          "claim": "本文方法 F1 优于 Baseline",
+          "source": "paper.pdf p.7 Table 2",
+          "detail": "Baseline F1 为 0.80，本文方法 F1 为 0.89",
+          "metric": "F1"
+        }
+      ],
       "tableData": [
         ["方法", "Precision", "Recall", "F1"],
         ["Baseline", "0.82", "0.79", "0.80"],
         ["本文方法", "0.91", "0.88", "0.89"]
       ],
       "visualType": "table",
-      "visualDescription": ""
+      "visualDescription": "",
+      "visualSpec": {
+        "purpose": "用表格承载主结果对比，突出本文方法相对基线的指标差异",
+        "type": "table",
+        "sourceRefs": ["paper.pdf p.7 Table 2"],
+        "expectedElements": ["方法列", "Precision", "Recall", "F1", "最佳结果高亮"],
+        "caption": "主结果对比"
+      },
+      "speakerNotes": "讲解时先说明实验协议保持一致，再强调表格中本文方法在三个指标上的稳定提升。重点解释 F1 提升为什么能支撑本文方法有效，而不是只读出表格数字。"
     },
     {
       "id": "slide-7",
       "layout": "diagram",
+      "researchRole": "analysis",
       "title": "性能对比",
       "subtitle": "",
-      "bodyText": ["不同方法在核心指标上存在稳定差距。"],
+      "claim": "不同方法在核心指标上存在稳定差距。",
+      "bodyText": [
+        "柱状图用于比较不同方法在 F1 与 Precision 上的差异。",
+        "本文方法在两个指标上均高于 Baseline 和方法 A。",
+        "结果差异应结合数据集规模、实验重复次数和统计显著性说明。"
+      ],
+      "evidence": [
+        {
+          "claim": "本文方法在 F1 和 Precision 上最高",
+          "source": "paper.pdf p.8 Figure 3",
+          "detail": "图中本文方法 F1=0.89，Precision=0.91",
+          "metric": "F1 / Precision"
+        }
+      ],
       "chartData": {
         "type": "bar",
         "categories": ["Baseline", "方法 A", "本文方法"],
@@ -360,7 +405,15 @@ outputs/{slug}/3-内容/content.json
         ]
       },
       "visualType": "chart",
-      "visualDescription": ""
+      "visualDescription": "",
+      "visualSpec": {
+        "purpose": "将结果差异转化为可比较图表，便于现场快速说明趋势",
+        "type": "chart",
+        "sourceRefs": ["paper.pdf p.8 Figure 3"],
+        "expectedElements": ["方法类别", "F1 系列", "Precision 系列", "图例"],
+        "caption": "核心指标对比"
+      },
+      "speakerNotes": "讲解时避免只说本文方法最好，需要解释比较条件、指标含义和差异幅度。如果原文没有统计显著性，不要额外声称显著。"
     }
   ]
 }
@@ -369,7 +422,10 @@ outputs/{slug}/3-内容/content.json
 内容规则：
 
 - 每条 bullet 必须是完整短语或句子。
-- 每页正文建议 3-5 条 bullet。
+- 每页正文建议 3-6 条 bullet。
+- 科研汇报正文页必须包含 `claim`、`evidence`、`speakerNotes` 和 `visualSpec`。
+- 科研汇报正文页必须有可溯源证据，`evidence.source` 使用 `paper.pdf p.7 Table 2` 这类格式。
+- 科研汇报的主结果页和消融实验页必须使用 `tableData` 或 `chartData` 承载数据。
 - 禁止使用“待补充”“TODO”“XXX”等占位文本。
 - 科研内容必须忠实于原始素材。
 - 实验数据必须保留原文精度。
@@ -413,12 +469,14 @@ outputs/{slug}/4-版式/layout.json
     "title": "演示标题",
     "audience": "目标受众",
     "language": "zh-CN",
+    "mode": "research-report",
     "slideCount": 12
   },
   "slides": [
     {
       "id": "slide-1",
       "layout": "cover",
+      "researchRole": "cover",
       "title": "论文标题",
       "elements": [
         {
@@ -450,6 +508,7 @@ outputs/{slug}/4-版式/layout.json
 元素类型：
 
 - `text`：文本框，role 可为 `title`、`subtitle`、`body`、`caption`、`footer`、`label`。
+- 科研汇报文本框可使用 `claim`、`evidence`、`metric` role，分别承载本页结论、证据说明和关键指标。
 - `shape`：装饰形状或内容容器。
 - `line`：分隔线或连接线。
 - `visual-placeholder`：配图、图表、表格或示意图占位。
@@ -457,6 +516,8 @@ outputs/{slug}/4-版式/layout.json
 通用布局规则：
 
 - 每页至少包含标题、正文或视觉元素、装饰/结构元素。
+- 科研汇报正文页至少包含 `title`、`claim`、2 个 `body/evidence` 信息块。
+- 科研汇报的方法、实验、结果、分析和案例页必须包含 `visual-placeholder` 或等价视觉元素。
 - 相邻元素间距至少 20。
 - 标题与正文间距建议 30-40。
 - 图表与文字间距建议 40-50。
@@ -590,6 +651,8 @@ outputs/{slug}/6-渲染规格/deck.json
 - 所有文本仍为中文，除专有名词、指标名或用户要求保留英文。
 - 页脚和页码使用原生对象或 renderer chrome。
 - 每页必须有明确标题元素，封面和结尾页除外时也应有清晰主标题。
+- 科研汇报 DeckSpec 必须保留 `meta.mode: "research-report"` 和每页 `researchRole`。
+- 科研汇报正文页必须包含 `claim` 文本元素、足够的 `body/evidence` 文本元素，以及可用于讲解的 `notes`。
 
 DeckSpec 示例：
 
@@ -599,6 +662,7 @@ DeckSpec 示例：
     "title": "演示标题",
     "audience": "目标受众",
     "language": "zh-CN",
+    "mode": "research-report",
     "slideCount": 12
   },
   "theme": {
@@ -630,6 +694,7 @@ DeckSpec 示例：
     {
       "id": "slide-1",
       "layout": "cover",
+      "researchRole": "cover",
       "title": "演示标题",
       "elements": [
         {
@@ -664,6 +729,7 @@ DeckSpec 示例：
 - 图片和 SVG 引用的 asset 存在。
 - SVG 通过安全检查。
 - 中文文案没有明显错别字和占位符。
+- 科研汇报模式下，过空正文页、缺少核心论点或缺少讲稿备注均视为错误，必须修复后再渲染。
 
 ## Stage 7：渲染 PPTX
 

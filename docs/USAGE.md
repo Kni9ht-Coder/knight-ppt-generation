@@ -44,6 +44,16 @@ npm run generate -- \
   --style "专业、简洁、蓝橙配色"
 ```
 
+## 科研汇报
+
+科研汇报使用 `mode: "research-report"`。示例 brief：
+
+```text
+examples/briefs/research-report.zh.json
+```
+
+该模式会要求内容页包含核心论点、可溯源证据、讲稿备注和方法/实验/结果页的结构化视觉说明；最终渲染仍使用 `npm run render -- --spec outputs/{slug}/6-渲染规格/deck.json`。
+
 ## 常用参数
 
 - `--brief <path>`：读取 JSON brief。

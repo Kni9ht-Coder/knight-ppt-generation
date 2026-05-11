@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 import { deckSpecSchema, type Box, type DeckSpec, type SlideElement } from "../schemas/deck.js";
+import type { ResearchRole } from "../schemas/research.js";
 
 export interface ValidationIssue {
   level: "error" | "warning";
@@ -23,9 +24,11 @@ export function validateDeckSpec(candidate: unknown): ValidationResult {
   }
 
   const deck = parsed.data;
+  issues.push(...validateMeta(deck));
   issues.push(...validateIds(deck));
   issues.push(...validateAssets(deck));
   issues.push(...validateSlides(deck));
+  issues.push(...validateResearchDeck(deck));
 
   return splitIssues(issues);
 }
@@ -36,6 +39,18 @@ function zodIssues(error: ZodError): ValidationIssue[] {
     path: issue.path.join("."),
     message: issue.message
   }));
+}
+
+function validateMeta(deck: DeckSpec): ValidationIssue[] {
+  if (deck.meta.slideCount === deck.slides.length) {
+    return [];
+  }
+
+  return [{
+    level: "error",
+    path: "meta.slideCount",
+    message: `slideCount is ${deck.meta.slideCount}, but slides length is ${deck.slides.length}.`
+  }];
 }
 
 function validateIds(deck: DeckSpec): ValidationIssue[] {
@@ -99,6 +114,89 @@ function validateSlides(deck: DeckSpec): ValidationIssue[] {
     }
 
     issues.push(...validateOverlap(slidePath, slide.elements));
+  });
+
+  return issues;
+}
+
+function validateResearchDeck(deck: DeckSpec): ValidationIssue[] {
+  if (deck.meta.mode !== "research-report") {
+    return [];
+  }
+
+  const issues: ValidationIssue[] = [];
+  const roles = new Set(deck.slides.map((slide) => slide.researchRole));
+  const requiredRoles: ResearchRole[] = ["problem", "method-overview", "experiment-setup", "main-results", "conclusion"];
+
+  for (const role of requiredRoles) {
+    if (!roles.has(role)) {
+      issues.push({
+        level: "error",
+        path: "slides",
+        message: `Research report is missing required slide role: ${role}.`
+      });
+    }
+  }
+
+  deck.slides.forEach((slide, slideIndex) => {
+    const slidePath = `slides.${slideIndex}`;
+    const isLightSlide = slide.layout === "cover" || slide.layout === "section" || slide.layout === "closing";
+    if (isLightSlide) {
+      return;
+    }
+
+    if (!slide.researchRole) {
+      issues.push({
+        level: "error",
+        path: `${slidePath}.researchRole`,
+        message: "Research report body slide must declare researchRole."
+      });
+    }
+
+    const titleCount = slide.elements.filter((element) => element.type === "text" && element.role === "title").length;
+    const claimText = slide.elements
+      .filter((element) => element.type === "text" && element.role === "claim")
+      .map((element) => element.text)
+      .join("");
+    const bodyText = slide.elements
+      .filter((element) => element.type === "text" && (element.role === "body" || element.role === "evidence"))
+      .map((element) => element.text)
+      .join("");
+    const visualCount = slide.elements.filter((element) => element.type === "svg" || element.type === "image" || element.type === "table").length;
+
+    if (titleCount < 1) {
+      issues.push({
+        level: "error",
+        path: `${slidePath}.elements`,
+        message: "Research report body slide must include a title text element."
+      });
+    }
+
+    if (claimText.trim().length < 8) {
+      issues.push({
+        level: "error",
+        path: `${slidePath}.elements`,
+        message: "Research report body slide must include a claim text element."
+      });
+    }
+
+    const hasEnoughText = bodyText.trim().length >= 80;
+    const hasVisualWithText = visualCount > 0 && bodyText.trim().length >= 40;
+    if (!hasEnoughText && !hasVisualWithText) {
+      issues.push({
+        level: "error",
+        path: `${slidePath}.elements`,
+        message: "Research report body slide is too thin: add evidence text, table data, or a substantive visual."
+      });
+    }
+
+    if (!slide.notes || slide.notes.trim().length < 60) {
+      issues.push({
+        level: "error",
+        path: `${slidePath}.notes`,
+        message: "Research report body slide must include speaker notes with enough detail for delivery."
+      });
+    }
   });
 
   return issues;

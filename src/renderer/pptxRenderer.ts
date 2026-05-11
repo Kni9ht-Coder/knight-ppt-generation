@@ -155,6 +155,12 @@ function defaultFontSize(role: Extract<SlideElement, { type: "text" }>["role"]):
       return 28;
     case "subtitle":
       return 16;
+    case "claim":
+      return 18;
+    case "evidence":
+      return 12;
+    case "metric":
+      return 20;
     case "caption":
     case "footer":
       return 10;
